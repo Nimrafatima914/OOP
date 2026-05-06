@@ -1,31 +1,249 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9 d17.14
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PRE-MID ASSIGNMENT (OOP)", "PRE-MID ASSIGNMENT (OOP)\PRE-MID ASSIGNMENT (OOP).vcxproj", "{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}.Debug|x64.ActiveCfg = Debug|x64
-		{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}.Debug|x64.Build.0 = Debug|x64
-		{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}.Debug|x86.ActiveCfg = Debug|Win32
-		{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}.Debug|x86.Build.0 = Debug|Win32
-		{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}.Release|x64.ActiveCfg = Release|x64
-		{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}.Release|x64.Build.0 = Release|x64
-		{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}.Release|x86.ActiveCfg = Release|Win32
-		{FA34A7F0-6038-4A5E-9EAE-DF93DE06CE7E}.Release|x86.Build.0 = Release|Win32
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {91D3368D-1E91-4467-B15A-CB5BF739D123}
-	EndGlobalSection
-EndGlobal
+﻿#include <iostream>
+#include <fstream> // for file handling 
+#include <string> // for using string class
+using namespace std;
+
+class Device {  // it is a class named device
+
+    string name;   // data members are name , isOn and brighteness and they are private by default
+    bool isOn;
+    int brightness;
+
+public:
+    Device() { // default constructor
+        name = "Unknown";
+        isOn = false;
+        brightness = 50;
+    }
+
+    Device(string n, bool status, int b) { // parameterized constructor
+        name = n;
+        isOn = status;
+        setBrightness(b); // using setter to ensure brightness is within the range (0-100)
+    }
+
+    ~Device() { // destructor
+        cout << "Device [" << name << "] is being removed." << endl;
+    }
+
+    void setName(string n) { // setter for name 
+        name = n;
+    }
+
+    void setBrightness(int b) { // setter for brightness with validation (0-100)
+        if (b >= 0 && b <= 100) {
+            brightness = b;
+        }
+        else {
+            cout << "setting brightness to 50" << endl;
+            brightness = 50;
+        }
+    }
+
+    void turnOn() { // function to turn on the device
+        isOn = true;
+    }
+
+    void turnOff() { // metod to turn off the device 
+        isOn = false;
+    }
+
+    string getName() const { // getter for name 
+        return name;
+    }
+
+    int getBrightness() const { // getter for brightness
+        return brightness;
+    }
+
+    bool getStatus() const { // getter for status (on or off)
+        return isOn;
+    }
+
+    void showInfo() const { // display function to show device information
+        cout << "Name: " << name << endl;
+        cout << "Status: " << (isOn ? "ON" : "OFF") << endl; // using ternary operator to display status
+        cout << "Brightness: " << brightness << endl;
+
+    }
+
+    void saveToFile(ofstream& outFile) const { // file handling function to save device info to a file
+        outFile << name << " " << isOn << " " << brightness << endl;
+
+
+    }
+
+    void loadFromFile(ifstream& inFile) { // file handling function to load device info from a file
+        inFile >> name >> isOn >> brightness;
+    }
+};
+
+class Room { // another class named room 
+
+    string roomName;
+    Device devices[5]; // array to hold upto five devices
+    int count;
+
+public:
+    Room(string name) { // constructor to initalize room name and load device from file
+        roomName = name;
+        count = 0;
+        loadFromFile(); // load devices from file when room is created
+    }
+
+    ~Room() { // destructor 
+        saveToFile(); // save device to file before closing 
+        cout << "Room [" << roomName << "] manager closed." << endl;
+    }
+
+    void addDevice(const Device& d) { // function to add device to the room ( only 5 devices allowed maximum)
+        if (count < 5) {
+            devices[count] = d;
+            count++;
+            cout << "Device added successfully!" << endl;
+        }
+        else {
+            cout << "Room is full!" << endl;
+        }
+    }
+
+    void showAllDevices() const { // function to show all devices in the room
+        if (count == 0) {
+            cout << "No devices in the room." << endl;
+            return;
+        }
+
+        cout << "\nDevices in " << roomName << ":\n";
+        for (int i = 0; i < count; i++) {
+            devices[i].showInfo();
+        }
+    }
+
+    int findDevice(string name) { // function to find a device by name and return its index)
+        for (int i = 0; i < count; i++) {
+            if (devices[i].getName() == name)
+                return i;
+        }
+        return -1;
+    }
+
+    void toggleDevice(string name) { // function to toggle device on or off based on its current status
+        int index = findDevice(name);
+
+        if (index == -1) {
+            cout << "Device not found!" << endl;
+            return;
+        }
+
+        if (devices[index].getStatus())
+            devices[index].turnOff();
+        else
+            devices[index].turnOn();
+
+        cout << "Device toggled!" << endl;
+    }
+
+    void setDeviceBrightness(string name, int brightness) { // function to set brightness of a device by name 
+        int index = findDevice(name);
+
+        if (index == -1) {
+            cout << "Device not found!" << endl;
+            return;
+        }
+
+        devices[index].setBrightness(brightness);
+        cout << "Brightness updated!" << endl;
+    }
+
+    void saveToFile() { // function to save all devices in room to a file
+        ofstream outFile("devices.txt");
+
+        if (!outFile)
+            return;
+
+        outFile << count << endl;
+
+        for (int i = 0; i < count; i++) {
+            devices[i].saveToFile(outFile);
+        }
+
+        outFile.close();
+    }
+
+    void loadFromFile() { // function to load device from file when room is created 
+        ifstream inFile("devices.txt");
+
+        if (!inFile)
+            return;
+
+        inFile >> count;
+
+        for (int i = 0; i < count; i++) {
+            devices[i].loadFromFile(inFile);
+        }
+
+        inFile.close();
+    }
+};
+
+int main() {
+    Room myRoom("Living Room"); // creating a room object 
+
+    int choice;
+
+    do {
+        cout << "\n=== Smart Room Manager ===\n";
+        cout << "1. Add a Device\n";
+        cout << "2. Show All Devices\n";
+        cout << "3. Turn Device ON/OFF\n";
+        cout << "4. Change Brightness\n";
+        cout << "5. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            string name;
+            bool status;
+            int brightness;
+
+            cout << "Enter device name: ";
+            cin >> name;
+
+            cout << "Is device ON? (1 = Yes, 0 = No): ";
+            cin >> status;
+
+            cout << "Enter brightness (0-100): ";
+            cin >> brightness;
+
+            Device d(name, status, brightness); // creating a device object using parameterized constructor 
+            myRoom.addDevice(d);
+        }
+        else if (choice == 2) {
+            myRoom.showAllDevices();
+        }
+        else if (choice == 3) {
+            string name;
+            cout << "Enter device name to toggle: ";
+            cin >> name;
+            myRoom.toggleDevice(name);
+        }
+        else if (choice == 4) {
+            string name;
+            int brightness;
+            cout << "Enter device name: ";
+            cin >> name;
+            cout << "Enter new brightness (0-100): ";
+            cin >> brightness;
+            myRoom.setDeviceBrightness(name, brightness);
+        }
+        else if (choice == 5) {
+            cout << "Exiting program...\n";
+        }
+        else {
+            cout << "Invalid choice!\n";
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
